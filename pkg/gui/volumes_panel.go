@@ -360,6 +360,12 @@ func (gui *Gui) handleBranchVolume() error {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
 
+		_, err = gui.OSCommand.RunCommandWithOutput("git --git-dir=\"" + volume.Volume.Mountpoint + "/.git/\" reset --hard")
+
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+
 		return nil
 	})
 }
