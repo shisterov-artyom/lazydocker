@@ -56,7 +56,7 @@ func (c *DockerCommand) RefreshVolumes() error {
 		if r, _ := c.OSCommand.FileExists(ownVolumes[i].Volume.Mountpoint + "/.git"); !r {
 			continue
 		}
-		r, err := c.OSCommand.RunCommandWithOutput("git --git-dir=\"" + ownVolumes[i].Volume.Mountpoint + "/.git/\" rev-parse --abbrev-ref HEAD")
+		r, err := c.OSCommand.RunCommandWithOutput("/bin/sh -c 'cd " + ownVolumes[i].Volume.Mountpoint + " && git rev-parse --abbrev-ref HEAD'")
 
 		if err != nil {
 			continue

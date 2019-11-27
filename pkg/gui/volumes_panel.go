@@ -301,7 +301,7 @@ func (gui *Gui) handleVolumesBranchCommand(g *gocui.Gui, v *gocui.View) error {
 	if r, _ := gui.OSCommand.FileExists(volume.Volume.Mountpoint + "/.git"); !r {
 		return nil
 	}
-	r, err := gui.OSCommand.RunCommandWithOutput("git --git-dir=\"" + volume.Volume.Mountpoint + "/.git/\" --no-pager branch -r")
+	r, err := gui.OSCommand.RunCommandWithOutput("/bin/sh -c 'cd " + volume.Volume.Mountpoint + " && git --no-pager branch -r'")
 
 	if err != nil {
 		return nil
@@ -339,7 +339,7 @@ func (gui *Gui) handleBranchVolume() error {
 		if r, err := gui.OSCommand.FileExists(volume.Volume.Mountpoint + "/.git"); !r {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
-		r, err := gui.OSCommand.RunCommandWithOutput("git --git-dir=\"" + volume.Volume.Mountpoint + "/.git/\" --no-pager branch -r")
+		r, err := gui.OSCommand.RunCommandWithOutput("/bin/sh -c 'cd " + volume.Volume.Mountpoint + " && git --no-pager branch -r'")
 
 		if err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
@@ -348,19 +348,19 @@ func (gui *Gui) handleBranchVolume() error {
 		branches := strings.Split(r, "\n")
 		branch := strings.TrimPrefix(strings.TrimSpace(branches[idx]), "origin/")
 
-		_, err = gui.OSCommand.RunCommandWithOutput("git --git-dir=\"" + volume.Volume.Mountpoint + "/.git/\" checkout -f " + branch)
+		_, err = gui.OSCommand.RunCommandWithOutput("/bin/sh -c 'cd " + volume.Volume.Mountpoint + " && git checkout -f " + branch + "'")
 
 		if err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
 
-		_, err = gui.OSCommand.RunCommandWithOutput("git --git-dir=\"" + volume.Volume.Mountpoint + "/.git/\" pull")
+		_, err = gui.OSCommand.RunCommandWithOutput("/bin/sh -c 'cd " + volume.Volume.Mountpoint + " && git pull'")
 
 		if err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
 
-		_, err = gui.OSCommand.RunCommandWithOutput("git --git-dir=\"" + volume.Volume.Mountpoint + "/.git/\" reset --hard")
+		r, err = gui.OSCommand.RunCommandWithOutput("/bin/sh -c 'cd " + volume.Volume.Mountpoint + " && git reset --hard'")
 
 		if err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())

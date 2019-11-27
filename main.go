@@ -17,7 +17,7 @@ import (
 
 var (
 	commit      string
-	version     = "unversioned"
+	version     = "2.2.8"
 	date        string
 	buildSource = "unknown"
 
