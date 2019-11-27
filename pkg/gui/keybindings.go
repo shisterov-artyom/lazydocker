@@ -401,6 +401,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.ViewBulkCommands,
 		},
 		{
+			ViewName:    "volumes",
+			Key:         'g',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleVolumesBranchCommand,
+			Description: "Select Git Branch",
+		},
+		{
 			ViewName:    "main",
 			Key:         gocui.KeyEsc,
 			Modifier:    gocui.ModNone,

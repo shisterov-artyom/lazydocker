@@ -289,6 +289,11 @@ func (c *Container) GetDisplayCPUPerc() string {
 	return utils.ColoredString(stats.CPUPerc, clr)
 }
 
+func (c *Container) GetDisplayBranch() string {
+
+	return ""
+}
+
 // ProducingLogs tells us whether we should bother checking a container's logs
 func (c *Container) ProducingLogs() bool {
 	return c.Container.State == "running" && !(c.Details.HostConfig.LogConfig.Type == "none")

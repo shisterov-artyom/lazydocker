@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"sort"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -18,11 +19,12 @@ type Volume struct {
 	OSCommand     *OSCommand
 	Log           *logrus.Entry
 	DockerCommand LimitedDockerCommand
+	Branch        string
 }
 
 // GetDisplayStrings returns the dispaly string of Container
 func (v *Volume) GetDisplayStrings(isFocused bool) []string {
-	return []string{v.Volume.Driver, v.Name}
+	return []string{v.Volume.Driver, v.Name, v.Branch}
 }
 
 // RefreshVolumes gets the volumes and stores them
@@ -49,6 +51,18 @@ func (c *DockerCommand) RefreshVolumes() error {
 			Log:           c.Log,
 			DockerCommand: c,
 		}
+
+		// update git branch info
+		if r, _ := c.OSCommand.FileExists(ownVolumes[i].Volume.Mountpoint + "/.git"); !r {
+			continue
+		}
+		r, err := c.OSCommand.RunCommandWithOutput("git --git-dir=\"" + ownVolumes[i].Volume.Mountpoint + "/.git/\" rev-parse --abbrev-ref HEAD")
+
+		if err != nil {
+			continue
+		}
+		ownVolumes[i].Branch = strings.TrimSpace(r)
+
 	}
 
 	c.Volumes = ownVolumes

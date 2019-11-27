@@ -2,13 +2,13 @@ package gui
 
 import (
 	"fmt"
-
 	"github.com/fatih/color"
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazydocker/pkg/commands"
 	"github.com/jesseduffield/lazydocker/pkg/config"
 	"github.com/jesseduffield/lazydocker/pkg/utils"
+	"strings"
 )
 
 // list panel functions
@@ -28,6 +28,14 @@ func (gui *Gui) getSelectedVolume() (*commands.Volume, error) {
 	}
 
 	return gui.DockerCommand.Volumes[selectedLine], nil
+}
+func (gui *Gui) getSelectedBranch() (int, error) {
+	selectedLine := gui.State.Panels.Menu.SelectedLine
+	if selectedLine == -1 {
+		return -1, gui.Errors.ErrNoVolumes
+	}
+
+	return selectedLine, nil
 }
 
 func (gui *Gui) handleVolumesClick(g *gocui.Gui, v *gocui.View) error {
@@ -85,6 +93,7 @@ func (gui *Gui) renderVolumeConfig(mainView *gocui.View, volume *commands.Volume
 		output += utils.WithPadding("Mountpoint: ", padding) + volume.Volume.Mountpoint + "\n"
 		output += utils.WithPadding("Labels: ", padding) + utils.FormatMap(padding, volume.Volume.Labels) + "\n"
 		output += utils.WithPadding("Options: ", padding) + utils.FormatMap(padding, volume.Volume.Options) + "\n"
+		output += utils.WithPadding("Branch: ", padding) + volume.Branch + "\n"
 
 		output += utils.WithPadding("Status: ", padding)
 		if volume.Volume.Status != nil {
@@ -279,4 +288,78 @@ func (gui *Gui) handleVolumesBulkCommand(g *gocui.Gui, v *gocui.View) error {
 	commandObject := gui.DockerCommand.NewCommandObject(commands.CommandObject{})
 
 	return gui.createBulkCommandMenu(bulkCommands, commandObject)
+}
+
+func (gui *Gui) handleVolumesBranchCommand(g *gocui.Gui, v *gocui.View) error {
+	baseBranchCommands := []config.CustomCommand{}
+
+	volume, err := gui.getSelectedVolume()
+	if err != nil {
+		return nil
+	}
+
+	if r, _ := gui.OSCommand.FileExists(volume.Volume.Mountpoint + "/.git"); !r {
+		return nil
+	}
+	r, err := gui.OSCommand.RunCommandWithOutput("git --git-dir=\"" + volume.Volume.Mountpoint + "/.git/\" --no-pager branch -r")
+
+	if err != nil {
+		return nil
+	}
+
+	branches := strings.Split(r, "\n")
+	for _, b := range branches {
+		b = strings.TrimPrefix(strings.TrimSpace(b), "origin/")
+
+		baseBranchCommands = append(baseBranchCommands, config.CustomCommand{Name: b, InternalFunction: gui.handleBranchVolume})
+	}
+
+	bulkCommands := append(baseBranchCommands, gui.Config.UserConfig.BulkCommands.Volumes...)
+	commandObject := gui.DockerCommand.NewCommandObject(commands.CommandObject{})
+
+	return gui.createBranchCommandMenu(bulkCommands, commandObject)
+}
+
+func (gui *Gui) handleBranchVolume() error {
+	return gui.WithWaitingStatus("switching branch", func() error {
+		//err := gui.DockerCommand.PruneVolumes()
+		//if err != nil {
+		//	return gui.createErrorPanel(gui.g, err.Error())
+		//}
+		volume, err := gui.getSelectedVolume()
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+
+		idx, err := gui.getSelectedBranch()
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+
+		if r, err := gui.OSCommand.FileExists(volume.Volume.Mountpoint + "/.git"); !r {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+		r, err := gui.OSCommand.RunCommandWithOutput("git --git-dir=\"" + volume.Volume.Mountpoint + "/.git/\" --no-pager branch -r")
+
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+
+		branches := strings.Split(r, "\n")
+		branch := strings.TrimPrefix(strings.TrimSpace(branches[idx]), "origin/")
+
+		_, err = gui.OSCommand.RunCommandWithOutput("git --git-dir=\"" + volume.Volume.Mountpoint + "/.git/\" checkout -f " + branch)
+
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+
+		_, err = gui.OSCommand.RunCommandWithOutput("git --git-dir=\"" + volume.Volume.Mountpoint + "/.git/\" pull")
+
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+
+		return nil
+	})
 }

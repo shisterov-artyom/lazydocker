@@ -75,3 +75,7 @@ func (gui *Gui) createCustomCommandMenu(customCommands []config.CustomCommand, c
 func (gui *Gui) createBulkCommandMenu(customCommands []config.CustomCommand, commandObject commands.CommandObject) error {
 	return gui.createCommandMenu(customCommands, commandObject, gui.Tr.BulkCommandTitle, gui.Tr.RunningBulkCommandStatus)
 }
+
+func (gui *Gui) createBranchCommandMenu(customCommands []config.CustomCommand, commandObject commands.CommandObject) error {
+	return gui.createCommandMenu(customCommands, commandObject, "Select Git Branch", "checkout process...")
+}

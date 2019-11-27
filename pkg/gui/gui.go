@@ -280,7 +280,7 @@ func (gui *Gui) Run() error {
 		gui.goEvery(time.Millisecond*30, gui.reRenderMain)
 		gui.goEvery(dockerRefreshInterval, gui.refreshProject)
 		gui.goEvery(dockerRefreshInterval, gui.refreshContainersAndServices)
-		gui.goEvery(dockerRefreshInterval, gui.refreshVolumes)
+		gui.goEvery(time.Millisecond*1000, gui.refreshVolumes)
 		gui.goEvery(time.Millisecond*1000, gui.DockerCommand.UpdateContainerDetails)
 		gui.goEvery(time.Millisecond*1000, gui.checkForContextChange)
 	}()

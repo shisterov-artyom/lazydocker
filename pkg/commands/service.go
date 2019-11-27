@@ -24,11 +24,11 @@ type Service struct {
 func (s *Service) GetDisplayStrings(isFocused bool) []string {
 
 	if s.Container == nil {
-		return []string{utils.ColoredString("none", color.FgBlue), s.Name, ""}
+		return []string{utils.ColoredString("none", color.FgBlue), s.Name, "", ""}
 	}
 
 	cont := s.Container
-	return []string{cont.GetDisplayStatus(), s.Name, cont.GetDisplayCPUPerc()}
+	return []string{cont.GetDisplayStatus(), s.Name, cont.GetDisplayCPUPerc(), cont.GetDisplayBranch()}
 }
 
 // Remove removes the service's containers
